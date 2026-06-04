@@ -3,649 +3,492 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Asistencia QR</title>
+  <title>Generador de Códigos</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
-    :root {
-      --bg: #0D0D0F;
-      --surface: #17171A;
-      --surface2: #1E1E23;
-      --border: #2A2A30;
-      --accent: #00E5A0;
-      --accent-dim: rgba(0,229,160,0.12);
-      --warn: #FFB340;
-      --warn-dim: rgba(255,179,64,0.12);
-      --red: #FF5B5B;
-      --red-dim: rgba(255,91,91,0.1);
-      --text: #F0F0F4;
-      --text2: #7A7A8A;
-      --text3: #44444E;
-    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      background: #F4F4F0;
+      color: #1A1A1A;
       min-height: 100vh;
-      max-width: 480px;
-      margin: 0 auto;
     }
 
-    /* HEADER */
-    header {
-      padding: 1.25rem 1.25rem 0;
+    /* ── LAYOUT ── */
+    .app { display: flex; min-height: 100vh; }
+
+    /* SIDEBAR CONFIG */
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      background: #1A1A1E;
+      color: #E8E8E4;
+      padding: 1.5rem 1.25rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
       display: flex;
-      align-items: center;
-      gap: 0.75rem;
+      flex-direction: column;
+      gap: 1.25rem;
     }
-    .logo {
-      width: 36px; height: 36px;
-      background: var(--accent);
-      border-radius: 10px;
+    .brand { display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.25rem; }
+    .brand-icon {
+      width: 32px; height: 32px;
+      background: #C8F56A;
+      border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem;
+      font-size: 1rem;
       flex-shrink: 0;
     }
-    header h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; }
-    header p { font-size: 0.75rem; color: var(--text2); }
+    .brand-name { font-size: 0.95rem; font-weight: 700; color: #fff; }
+    .brand-sub { font-size: 0.7rem; color: #5A5A6A; }
 
-    /* NAV */
-    nav {
-      display: flex;
-      gap: 0.25rem;
-      padding: 1rem 1.25rem 0;
+    .section-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #5A5A6A;
+      margin-bottom: 0.5rem;
     }
-    nav button {
-      flex: 1; padding: 0.5rem 0.25rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text2);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    nav button.active {
-      background: var(--accent-dim);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    nav button:not(.active):hover { border-color: var(--border); color: var(--text); }
+    .field { margin-bottom: 0.75rem; }
+    .field label { display: block; font-size: 0.78rem; color: #9A9AAA; margin-bottom: 0.375rem; }
 
-    /* MAIN */
-    main { padding: 1rem 1.25rem 2rem; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* CARDS */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-    }
-
-    /* INPUTS */
-    .label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text2); margin-bottom: 0.5rem; }
-    input[type="text"], textarea {
+    input[type="text"],
+    input[type="number"],
+    select {
       width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
+      background: #26262C;
+      border: 1px solid #333340;
       border-radius: 8px;
-      padding: 0.625rem 0.875rem;
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.875rem;
+      padding: 0.55rem 0.75rem;
+      color: #E8E8E4;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
       outline: none;
       transition: border-color 0.15s;
     }
-    input[type="text"]:focus, textarea:focus { border-color: var(--accent); }
-    textarea { resize: vertical; min-height: 80px; }
+    input:focus, select:focus { border-color: #C8F56A; }
+    select option { background: #26262C; }
 
-    .row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
-    .row input { flex: 1; }
-
-    /* BUTTONS */
-    .btn {
-      padding: 0.6rem 1rem;
-      border: none; border-radius: 8px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.85rem; font-weight: 600;
-      cursor: pointer; transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .btn-accent { background: var(--accent); color: #000; }
-    .btn-accent:hover { background: #00fdb3; }
-    .btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
-    .btn-ghost:hover { color: var(--text); border-color: var(--text3); }
-    .btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,91,91,0.25); }
-    .btn-sm { padding: 0.35rem 0.65rem; font-size: 0.75rem; border-radius: 6px; }
-    .btn-block { width: 100%; padding: 0.875rem; font-size: 0.95rem; border-radius: 10px; }
-
-    /* TOOLBAR */
-    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-    .badge {
+    .preview-id {
       font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text2);
-      padding: 0.25rem 0.625rem;
-      border-radius: 999px;
-    }
-    .actions { display: flex; gap: 0.375rem; }
-
-    /* PERSON CARD */
-    .person-item {
-      display: flex;
-      align-items: center;
-      gap: 0.875rem;
-      padding: 0.75rem;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 0.5rem;
-      transition: border-color 0.15s;
-    }
-    .person-item:hover { border-color: var(--text3); }
-    .person-qr-wrap {
-      width: 68px; height: 68px;
-      flex-shrink: 0;
-      background: white;
+      font-size: 0.75rem;
+      color: #C8F56A;
+      background: rgba(200,245,106,0.08);
+      border: 1px solid rgba(200,245,106,0.2);
       border-radius: 6px;
-      padding: 2px;
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden;
-    }
-    .person-qr-wrap canvas, .person-qr-wrap img { width: 64px !important; height: 64px !important; }
-    .person-info { flex: 1; min-width: 0; }
-    .person-name { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .person-id { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--text2); margin-top: 0.125rem; }
-    .person-btns { display: flex; gap: 0.25rem; flex-shrink: 0; }
-
-    /* SCANNER */
-    .scan-wrap {
-      position: relative;
-      background: #000;
-      border-radius: 12px;
-      overflow: hidden;
-      aspect-ratio: 1;
-      border: 1px solid var(--border);
-    }
-    #video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    #canvas-scan { display: none; }
-    .scan-overlay {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      pointer-events: none;
-    }
-    .scan-frame-wrap { position: relative; width: 180px; height: 180px; }
-    .scan-frame {
-      position: absolute; inset: 0;
-      border-radius: 12px;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
-    }
-    /* Corner brackets */
-    .corner {
-      position: absolute;
-      width: 20px; height: 20px;
-      border-color: var(--accent);
-      border-style: solid;
-    }
-    .corner.tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
-    .corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
-    .corner.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
-    .corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
-    .scan-line {
-      position: absolute;
-      left: 4px; right: 4px;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      border-radius: 1px;
-      animation: scanline 2s ease-in-out infinite;
-    }
-    @keyframes scanline {
-      0%   { top: 8px; opacity: 0; }
-      10%  { opacity: 1; }
-      90%  { opacity: 1; }
-      100% { top: calc(100% - 8px); opacity: 0; }
+      padding: 0.4rem 0.625rem;
+      margin-top: 0.375rem;
     }
 
-    /* SCAN STATUS */
-    .scan-status {
+    .divider { height: 1px; background: #2A2A32; margin: 0.25rem 0; }
+
+    .btn-generate {
+      width: 100%;
+      padding: 0.875rem;
+      background: #C8F56A;
+      color: #1A1A1E;
+      border: none;
       border-radius: 10px;
-      padding: 1rem;
-      text-align: center;
-      margin: 0.75rem 0;
-      transition: all 0.25s;
-      border: 1px solid transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-top: auto;
     }
-    .scan-status.idle { background: var(--surface); border-color: var(--border); }
-    .scan-status.success { background: var(--accent-dim); border-color: rgba(0,229,160,0.3); }
-    .scan-status.unknown { background: var(--warn-dim); border-color: rgba(255,179,64,0.3); }
-    .status-name { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.03em; }
-    .status-name.idle { color: var(--text2); font-size: 1rem; font-weight: 500; }
-    .status-name.success { color: var(--accent); }
-    .status-name.unknown { color: var(--warn); }
-    .status-time { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--text2); margin-top: 0.25rem; }
+    .btn-generate:hover { background: #d9ff7a; transform: translateY(-1px); }
+    .btn-generate:active { transform: none; }
 
-    /* RECENT */
-    .recent-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0.6rem 0;
-      border-bottom: 1px solid var(--border);
+    /* MAIN AREA */
+    .main { flex: 1; padding: 1.5rem; min-width: 0; }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
     }
-    .recent-item:last-child { border-bottom: none; }
-    .recent-name { font-weight: 600; font-size: 0.875rem; }
-    .recent-time { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--text2); }
+    .top-bar-left h2 { font-size: 1rem; font-weight: 700; }
+    .top-bar-left p { font-size: 0.78rem; color: #777; margin-top: 0.125rem; }
 
-    /* REGISTROS */
-    .rec-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0.7rem 0;
-      border-bottom: 1px solid var(--border);
+    .top-actions { display: flex; gap: 0.5rem; }
+    .btn {
+      padding: 0.5rem 0.875rem;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
     }
-    .rec-item:last-child { border-bottom: none; }
-    .rec-name { font-weight: 600; font-size: 0.875rem; }
-    .rec-date { font-size: 0.7rem; color: var(--text3); margin-top: 0.1rem; }
-    .rec-time { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--accent); }
+    .btn-dark { background: #1A1A1E; color: #E8E8E4; }
+    .btn-dark:hover { background: #26262C; }
+    .btn-outline { background: white; color: #1A1A1E; border: 1.5px solid #D8D8D0; }
+    .btn-outline:hover { border-color: #aaa; }
 
-    /* EMPTY */
+    /* TOGGLE */
+    .toggle-group {
+      display: flex;
+      background: white;
+      border: 1.5px solid #D8D8D0;
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .toggle-group button {
+      padding: 0.35rem 0.75rem;
+      border: none;
+      border-radius: 6px;
+      background: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #777;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .toggle-group button.active {
+      background: #1A1A1E;
+      color: white;
+    }
+
+    /* EMPTY STATE */
     .empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 60vh;
+      color: #999;
       text-align: center;
-      padding: 2.5rem 1rem;
-      color: var(--text2);
+      gap: 0.75rem;
     }
-    .empty-icon { font-size: 2rem; margin-bottom: 0.625rem; opacity: 0.5; }
-    .empty p { font-size: 0.85rem; }
+    .empty-icon { font-size: 3rem; opacity: 0.3; }
+    .empty h3 { font-size: 1rem; color: #555; }
+    .empty p { font-size: 0.82rem; max-width: 280px; line-height: 1.5; }
 
-    details summary { font-size: 0.78rem; color: var(--text2); cursor: pointer; margin-top: 0.25rem; }
-    details summary:hover { color: var(--text); }
-    details[open] summary { margin-bottom: 0.5rem; }
+    /* CODE GRID */
+    .code-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.75rem;
+    }
+    .code-grid.thermal {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+
+    /* CODE CARD */
+    .code-card {
+      background: white;
+      border: 1.5px solid #E4E4DC;
+      border-radius: 10px;
+      padding: 1rem 0.75rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.625rem;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .code-card:hover { border-color: #bbb; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .code-img-wrap {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%;
+    }
+    .code-img-wrap canvas { display: block; }
+    .code-img-wrap svg { display: block; }
+    .code-id {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #1A1A1A;
+      letter-spacing: 0.02em;
+    }
+    .code-dl {
+      padding: 0.3rem 0.75rem;
+      font-size: 0.72rem;
+      border-radius: 6px;
+      background: #F4F4F0;
+      color: #555;
+      border: 1px solid #E4E4DC;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+    .code-dl:hover { background: #EBEBE4; }
 
     /* PRINT */
     @media print {
-      body { background: white; color: #000; max-width: none; }
-      nav, header, .btn, .row, details, .person-btns, .toolbar { display: none !important; }
-      #tab-scanner, #tab-registros { display: none !important; }
-      #tab-personas { display: block !important; }
-      .card { border: none; background: white; }
-      .person-item { background: white; border: 1px solid #ccc; break-inside: avoid; }
-      .person-name { color: #000; }
-      .person-id { color: #666; }
+      body { background: white; }
+      .sidebar, .top-bar, .code-dl { display: none !important; }
+      .main { padding: 0; }
+      .code-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+        padding: 4px;
+      }
+      .code-grid.thermal {
+        grid-template-columns: 1fr;
+        max-width: 80mm;
+        margin: 0 auto;
+      }
+      .code-card {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 6px 4px 4px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .code-grid.thermal .code-card { page-break-after: always; }
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      .app { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: static; }
+      .btn-generate { margin-top: 0; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="logo">📋</div>
+<div class="app">
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
     <div>
-      <h1>Asistencia QR</h1>
-      <p>Genere, escanee y registre entradas</p>
+      <div class="brand">
+        <div class="brand-icon">⬛</div>
+        <div>
+          <div class="brand-name">Generador</div>
+          <div class="brand-sub">Códigos de inventario</div>
+        </div>
+      </div>
     </div>
-  </header>
 
-  <nav>
-    <button class="active" onclick="switchTab('personas')">👥 Personas</button>
-    <button onclick="switchTab('scanner')">📷 Escáner</button>
-    <button onclick="switchTab('registros')">📊 Registros</button>
-  </nav>
+    <div>
+      <div class="section-label">1 · Prefijo</div>
+      <div class="field">
+        <label>Prefijo del código</label>
+        <input type="text" id="prefix" value="INV-" maxlength="12" oninput="updatePreview()">
+      </div>
+      <div class="field">
+        <label>Número inicial</label>
+        <input type="number" id="start" value="1" min="0" oninput="updatePreview()">
+      </div>
+      <div class="field">
+        <label>Dígitos (relleno con ceros)</label>
+        <select id="padding" onchange="updatePreview()">
+          <option value="1">Sin relleno — 1, 2, 3</option>
+          <option value="2">2 dígitos — 01, 02</option>
+          <option value="3" selected>3 dígitos — 001, 002</option>
+          <option value="4">4 dígitos — 0001, 0002</option>
+        </select>
+      </div>
+      <div class="preview-id" id="preview-id">Vista previa: INV-001</div>
+    </div>
 
-  <main>
-    <!-- ══ TAB PERSONAS ══ -->
-    <section id="tab-personas" class="tab-content active">
-      <div class="card">
-        <div class="label">Agregar persona</div>
-        <div class="row">
-          <input type="text" id="new-name" placeholder="Nombre completo..." onkeydown="if(event.key==='Enter')addPerson()">
-          <button class="btn btn-accent" onclick="addPerson()">Agregar</button>
+    <div class="divider"></div>
+
+    <div>
+      <div class="section-label">2 · Cantidad</div>
+      <div class="field">
+        <label>¿Cuántos códigos generar?</label>
+        <input type="number" id="count" value="20" min="1" max="500">
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div>
+      <div class="section-label">3 · Tipo de código</div>
+      <div class="field">
+        <label>Formato</label>
+        <select id="code-type">
+          <option value="qr">QR Code (recomendado)</option>
+          <option value="barcode">Código de barras (1D)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tamaño del código</label>
+        <select id="code-size">
+          <option value="80">Pequeño (80px)</option>
+          <option value="120" selected>Mediano (120px)</option>
+          <option value="160">Grande (160px)</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-generate" onclick="generate()">Generar códigos →</button>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+    <div class="top-bar" id="top-bar" style="display:none">
+      <div class="top-bar-left">
+        <h2 id="result-title">Códigos generados</h2>
+        <p id="result-sub"></p>
+      </div>
+      <div class="top-actions">
+        <div class="toggle-group">
+          <button class="active" onclick="setLayout('grid',this)">⊞ Cuadrícula</button>
+          <button onclick="setLayout('thermal',this)">≡ Térmica</button>
         </div>
-        <details>
-          <summary>+ Agregar varios a la vez</summary>
-          <div class="label">Un nombre por línea</div>
-          <textarea id="bulk-input" placeholder="Ana García&#10;Carlos López&#10;María Rodríguez"></textarea>
-          <button class="btn btn-ghost btn-sm" style="margin-top:0.5rem" onclick="addBulk()">Agregar todos</button>
-        </details>
+        <button class="btn btn-outline" onclick="downloadZip()">⬇ ZIP</button>
+        <button class="btn btn-dark" onclick="window.print()">🖨 Imprimir</button>
       </div>
+    </div>
 
-      <div class="toolbar">
-        <span class="badge" id="people-count">0 personas</span>
-        <div class="actions">
-          <button class="btn btn-ghost btn-sm" onclick="printAll()">🖨 Imprimir</button>
-          <button class="btn btn-danger btn-sm" onclick="clearPeople()">Borrar todo</button>
-        </div>
-      </div>
+    <div id="empty-state" class="empty">
+      <div class="empty-icon">⬛</div>
+      <h3>Configure y genere sus códigos</h3>
+      <p>Use el panel izquierdo para definir el prefijo, la cantidad y el tipo de código, luego presione <strong>Generar</strong>.</p>
+    </div>
 
-      <div id="people-list"></div>
-    </section>
-
-    <!-- ══ TAB SCANNER ══ -->
-    <section id="tab-scanner" class="tab-content">
-      <div class="card" style="padding:0.625rem">
-        <div class="scan-wrap">
-          <video id="video" autoplay playsinline muted></video>
-          <canvas id="canvas-scan"></canvas>
-          <div class="scan-overlay">
-            <div class="scan-frame-wrap">
-              <div class="scan-frame"></div>
-              <div class="corner tl"></div>
-              <div class="corner tr"></div>
-              <div class="corner bl"></div>
-              <div class="corner br"></div>
-              <div class="scan-line" id="scan-line" style="display:none"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button id="scan-btn" class="btn btn-accent btn-block" onclick="toggleScanner()">▶ Iniciar cámara</button>
-
-      <div id="scan-status" class="scan-status idle">
-        <div class="status-name idle">Esperando escaneo…</div>
-        <div class="status-time">Apunte la cámara a un código QR</div>
-      </div>
-
-      <div class="card">
-        <div class="label">Últimas entradas</div>
-        <div id="recent-list"><p style="font-size:0.82rem;color:var(--text2)">Sin registros aún</p></div>
-      </div>
-    </section>
-
-    <!-- ══ TAB REGISTROS ══ -->
-    <section id="tab-registros" class="tab-content">
-      <div class="toolbar">
-        <span class="badge" id="records-count">0 registros</span>
-        <div class="actions">
-          <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ CSV</button>
-          <button class="btn btn-danger btn-sm" onclick="clearRecords()">Borrar</button>
-        </div>
-      </div>
-      <div class="card">
-        <div id="records-list"></div>
-      </div>
-    </section>
+    <div id="code-grid" class="code-grid"></div>
   </main>
+</div>
 
-  <script>
-    // ── STATE ──
-    let people = [];
-    let records = [];
-    let scanning = false;
-    let stream = null;
-    let raf = null;
-    let lastCode = null;
-    let lastCodeTime = 0;
+<script>
+  let codes = [];
+  let currentType = 'qr';
+  let currentSize = 120;
 
-    // ── STORAGE ──
-    async function save() {
-      try {
-        await window.storage.set('qr_people', JSON.stringify(people));
-        await window.storage.set('qr_records', JSON.stringify(records));
-      } catch(e) {}
-    }
-    async function load() {
-      try {
-        const p = await window.storage.get('qr_people');
-        const r = await window.storage.get('qr_records');
-        if (p) people = JSON.parse(p.value);
-        if (r) records = JSON.parse(r.value);
-      } catch(e) {}
-      renderPeople();
-      renderRecords();
-    }
+  function pad(n, digits) { return String(n).padStart(digits, '0'); }
 
-    // ── TABS ──
-    const TABS = ['personas','scanner','registros'];
-    function switchTab(tab) {
-      TABS.forEach(t => {
-        document.getElementById('tab-'+t).classList.toggle('active', t===tab);
-        document.querySelectorAll('nav button')[TABS.indexOf(t)].classList.toggle('active', t===tab);
-      });
-      if (tab !== 'scanner' && scanning) stopScanner();
+  function updatePreview() {
+    const prefix = document.getElementById('prefix').value;
+    const start = parseInt(document.getElementById('start').value) || 1;
+    const digits = parseInt(document.getElementById('padding').value);
+    document.getElementById('preview-id').textContent = 'Vista previa: ' + prefix + pad(start, digits);
+  }
+
+  function generate() {
+    const prefix = document.getElementById('prefix').value.trim();
+    const start = parseInt(document.getElementById('start').value) || 1;
+    const count = Math.min(parseInt(document.getElementById('count').value) || 1, 500);
+    const digits = parseInt(document.getElementById('padding').value);
+    currentType = document.getElementById('code-type').value;
+    currentSize = parseInt(document.getElementById('code-size').value);
+
+    codes = [];
+    for (let i = 0; i < count; i++) {
+      codes.push(prefix + pad(start + i, digits));
     }
 
-    // ── PEOPLE ──
-    function uid() { return Math.random().toString(36).substr(2,8).toUpperCase(); }
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('top-bar').style.display = 'flex';
+    document.getElementById('result-title').textContent = count + ' códigos generados';
+    document.getElementById('result-sub').textContent = codes[0] + ' → ' + codes[codes.length - 1];
 
-    function addPerson() {
-      const el = document.getElementById('new-name');
-      const name = el.value.trim();
-      if (!name) return;
-      people.push({ id: uid(), name });
-      el.value = '';
-      save(); renderPeople();
-    }
+    renderGrid();
+  }
 
-    function addBulk() {
-      const el = document.getElementById('bulk-input');
-      el.value.split('\n').map(n=>n.trim()).filter(Boolean).forEach(name => {
-        people.push({ id: uid(), name });
-      });
-      el.value = '';
-      save(); renderPeople();
-    }
+  function renderGrid() {
+    const grid = document.getElementById('code-grid');
+    grid.innerHTML = codes.map((id, i) => `
+      <div class="code-card" id="card-${i}">
+        <div class="code-img-wrap" id="img-${i}"></div>
+        <div class="code-id">${escHtml(id)}</div>
+        <button class="code-dl" onclick="dlSingle(${i})">⬇ Descargar</button>
+      </div>
+    `).join('');
 
-    function deletePerson(id) {
-      people = people.filter(p=>p.id!==id);
-      save(); renderPeople();
-    }
-
-    function clearPeople() {
-      if (!confirm('¿Borrar todas las personas?')) return;
-      people = []; save(); renderPeople();
-    }
-
-    function renderPeople() {
-      document.getElementById('people-count').textContent = people.length + ' persona' + (people.length!==1?'s':'');
-      const el = document.getElementById('people-list');
-      if (!people.length) {
-        el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><p>Agregue personas para generar sus códigos QR</p></div>';
-        return;
-      }
-      el.innerHTML = people.map(p => `
-        <div class="person-item">
-          <div class="person-qr-wrap" id="qr-${p.id}"></div>
-          <div class="person-info">
-            <div class="person-name">${escHtml(p.name)}</div>
-            <div class="person-id">ID: ${p.id}</div>
-          </div>
-          <div class="person-btns">
-            <button class="btn btn-ghost btn-sm" onclick="dlQR('${p.id}','${escHtml(p.name)}')" title="Descargar QR">⬇</button>
-            <button class="btn btn-danger btn-sm" onclick="deletePerson('${p.id}')" title="Eliminar">✕</button>
-          </div>
-        </div>
-      `).join('');
-
-      people.forEach(p => {
-        const wrap = document.getElementById('qr-'+p.id);
-        if (wrap && !wrap.children.length) {
+    // Generate codes after DOM is ready
+    requestAnimationFrame(() => {
+      codes.forEach((id, i) => {
+        const wrap = document.getElementById('img-' + i);
+        if (!wrap) return;
+        if (currentType === 'qr') {
           try {
             new QRCode(wrap, {
-              text: 'ASIST:' + p.id + ':' + p.name,
-              width: 64, height: 64,
+              text: id,
+              width: currentSize,
+              height: currentSize,
               correctLevel: QRCode.CorrectLevel.M
             });
-          } catch(e) {}
+          } catch(e) { wrap.textContent = 'Error QR'; }
+        } else {
+          const canvas = document.createElement('canvas');
+          wrap.appendChild(canvas);
+          try {
+            JsBarcode(canvas, id, {
+              format: 'CODE128',
+              width: currentSize > 120 ? 2.5 : 1.8,
+              height: Math.round(currentSize * 0.45),
+              displayValue: false,
+              margin: 4,
+              background: '#ffffff',
+              lineColor: '#000000'
+            });
+          } catch(e) { wrap.textContent = 'Error barcode'; }
         }
       });
-    }
+    });
+  }
 
-    function dlQR(id, name) {
-      const wrap = document.getElementById('qr-'+id);
-      if (!wrap) return;
-      const canvas = wrap.querySelector('canvas');
-      if (!canvas) return;
-      const a = document.createElement('a');
-      a.download = name + '_QR.png';
-      a.href = canvas.toDataURL();
-      a.click();
-    }
+  function setLayout(type, btn) {
+    const grid = document.getElementById('code-grid');
+    grid.className = 'code-grid' + (type === 'thermal' ? ' thermal' : '');
+    document.querySelectorAll('.toggle-group button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
 
-    function printAll() { window.print(); }
-    function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function getCanvas(index) {
+    const wrap = document.getElementById('img-' + index);
+    if (!wrap) return null;
+    return wrap.querySelector('canvas');
+  }
 
-    // ── SCANNER ──
-    async function toggleScanner() {
-      if (scanning) { stopScanner(); return; }
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width:{ ideal:1280 }, height:{ ideal:720 } } });
-        const video = document.getElementById('video');
-        video.srcObject = stream;
-        await video.play();
-        scanning = true;
-        document.getElementById('scan-btn').textContent = '⏹ Detener cámara';
-        document.getElementById('scan-btn').style.background = '#FF5B5B';
-        document.getElementById('scan-btn').style.color = '#fff';
-        document.getElementById('scan-line').style.display = 'block';
-        tick();
-      } catch(e) {
-        alert('No se pudo acceder a la cámara.\n' + e.message);
+  function dlSingle(index) {
+    const canvas = getCanvas(index);
+    if (!canvas) return;
+    const a = document.createElement('a');
+    a.download = codes[index] + '.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  }
+
+  async function downloadZip() {
+    if (!codes.length) return;
+    const btn = document.querySelector('.btn-outline');
+    btn.textContent = 'Generando…';
+    btn.disabled = true;
+
+    try {
+      const zip = new JSZip();
+      for (let i = 0; i < codes.length; i++) {
+        const canvas = getCanvas(i);
+        if (!canvas) continue;
+        const dataUrl = canvas.toDataURL('image/png');
+        const base64 = dataUrl.split(',')[1];
+        zip.file(codes[i] + '.png', base64, { base64: true });
       }
-    }
-
-    function stopScanner() {
-      if (stream) { stream.getTracks().forEach(t=>t.stop()); stream = null; }
-      if (raf) { cancelAnimationFrame(raf); raf = null; }
-      scanning = false;
-      document.getElementById('scan-btn').textContent = '▶ Iniciar cámara';
-      document.getElementById('scan-btn').style.background = '';
-      document.getElementById('scan-btn').style.color = '';
-      document.getElementById('scan-line').style.display = 'none';
-      setStatus('idle');
-    }
-
-    function tick() {
-      if (!scanning) return;
-      const video = document.getElementById('video');
-      const canvas = document.getElementById('canvas-scan');
-      if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0);
-        try {
-          const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-          if (code) {
-            const now = Date.now();
-            if (code.data !== lastCode || now - lastCodeTime > 3000) {
-              lastCode = code.data;
-              lastCodeTime = now;
-              handleScan(code.data);
-            }
-          }
-        } catch(e) {}
-      }
-      raf = requestAnimationFrame(tick);
-    }
-
-    function handleScan(data) {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('es', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-      const dateStr = now.toLocaleDateString('es', { day:'2-digit', month:'short', year:'numeric' });
-
-      if (data.startsWith('ASIST:')) {
-        const parts = data.split(':');
-        const id = parts[1];
-        const nameFallback = parts.slice(2).join(':');
-        const person = people.find(p=>p.id===id);
-        const name = person ? person.name : nameFallback;
-
-        records.unshift({ name, id, ts: now.toISOString() });
-        if (records.length > 500) records = records.slice(0, 500);
-        save(); renderRecords(); renderRecent();
-
-        beep(880, 0.12);
-        setStatus('success', '✓ ' + name, timeStr + ' · ' + dateStr);
-      } else {
-        beep(300, 0.25);
-        setStatus('unknown', '⚠ QR no reconocido', data.substring(0,40));
-      }
-
-      setTimeout(() => setStatus('idle'), 3000);
-    }
-
-    function setStatus(type, name='Esperando escaneo…', time='Apunte la cámara a un código QR') {
-      const el = document.getElementById('scan-status');
-      el.className = 'scan-status ' + type;
-      el.innerHTML = `<div class="status-name ${type}">${escHtml(name)}</div><div class="status-time">${escHtml(time)}</div>`;
-    }
-
-    // ── RECORDS ──
-    function renderRecent() {
-      const el = document.getElementById('recent-list');
-      const recent = records.slice(0,5);
-      if (!recent.length) { el.innerHTML = '<p style="font-size:0.82rem;color:var(--text2)">Sin registros aún</p>'; return; }
-      el.innerHTML = recent.map(r => {
-        const t = new Date(r.ts);
-        return `<div class="recent-item">
-          <span class="recent-name">${escHtml(r.name)}</span>
-          <span class="recent-time">${t.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}</span>
-        </div>`;
-      }).join('');
-    }
-
-    function renderRecords() {
-      document.getElementById('records-count').textContent = records.length + ' registro' + (records.length!==1?'s':'');
-      renderRecent();
-      const el = document.getElementById('records-list');
-      if (!records.length) {
-        el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>Los registros aparecerán aquí al escanear</p></div>';
-        return;
-      }
-      el.innerHTML = records.map(r => {
-        const t = new Date(r.ts);
-        return `<div class="rec-item">
-          <div>
-            <div class="rec-name">${escHtml(r.name)}</div>
-            <div class="rec-date">${t.toLocaleDateString('es',{day:'2-digit',month:'short',year:'numeric'})}</div>
-          </div>
-          <div class="rec-time">${t.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div>
-        </div>`;
-      }).join('');
-    }
-
-    function clearRecords() {
-      if (!confirm('¿Borrar todos los registros?')) return;
-      records = []; save(); renderRecords();
-    }
-
-    function exportCSV() {
-      const rows = [['Nombre','Fecha','Hora','ID']];
-      records.forEach(r => {
-        const t = new Date(r.ts);
-        rows.push([r.name, t.toLocaleDateString('es'), t.toLocaleTimeString('es'), r.id]);
-      });
-      const csv = rows.map(row => row.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
-      const blob = new Blob(['\ufeff'+csv], { type: 'text/csv;charset=utf-8' });
+      const blob = await zip.generateAsync({ type: 'blob' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'asistencia_' + new Date().toLocaleDateString('es').replace(/\//g,'-') + '.csv';
+      a.download = 'codigos_' + (document.getElementById('prefix').value || 'lote') + '.zip';
       a.click();
+    } catch(e) {
+      alert('Error al generar ZIP: ' + e.message);
     }
 
-    // ── AUDIO ──
-    function beep(freq, dur) {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const g = ctx.createGain();
-        osc.connect(g); g.connect(ctx.destination);
-        osc.frequency.value = freq;
-        osc.type = 'sine';
-        g.gain.setValueAtTime(0.25, ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
-        osc.start(); osc.stop(ctx.currentTime + dur);
-      } catch(e) {}
-    }
+    btn.textContent = '⬇ ZIP';
+    btn.disabled = false;
+  }
 
-    // ── INIT ──
-    load();
-  </script>
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  updatePreview();
+</script>
 </body>
 </html>
