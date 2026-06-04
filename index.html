@@ -135,31 +135,7 @@
     .btn-outline { background: white; color: #1A1A1E; border: 1.5px solid #D8D8D0; }
     .btn-outline:hover { border-color: #aaa; }
 
-    /* TOGGLE */
-    .toggle-group {
-      display: flex;
-      background: white;
-      border: 1.5px solid #D8D8D0;
-      border-radius: 8px;
-      padding: 2px;
-      gap: 2px;
-    }
-    .toggle-group button {
-      padding: 0.35rem 0.75rem;
-      border: none;
-      border-radius: 6px;
-      background: none;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 500;
-      color: #777;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .toggle-group button.active {
-      background: #1A1A1E;
-      color: white;
-    }
+
 
     /* EMPTY STATE */
     .empty {
@@ -339,10 +315,6 @@
         <p id="result-sub"></p>
       </div>
       <div class="top-actions">
-        <div class="toggle-group">
-          <button class="active" onclick="setLayout('grid',this)">⊞ Cuadrícula</button>
-          <button onclick="setLayout('thermal',this)">≡ Térmica</button>
-        </div>
         <button class="btn btn-outline" onclick="downloadZip()">⬇ ZIP</button>
         <select id="print-cols" class="btn btn-outline" onchange="setPrintCols(this.value)" title="Columnas al imprimir">
           <option value="2">2 por fila</option>
@@ -441,13 +413,6 @@
         }
       });
     });
-  }
-
-  function setLayout(type, btn) {
-    const grid = document.getElementById('code-grid');
-    grid.className = 'code-grid' + (type === 'thermal' ? ' thermal' : '');
-    document.querySelectorAll('.toggle-group button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
   }
 
   function getCanvas(index) {
