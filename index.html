@@ -315,8 +315,10 @@
         <p id="result-sub"></p>
       </div>
       <div class="top-actions">
+        <button class="btn btn-outline" onclick="downloadImage()">🖼 Imagen PNG</button>
         <button class="btn btn-outline" onclick="downloadZip()">⬇ ZIP</button>
         <select id="print-cols" class="btn btn-outline" onchange="setPrintCols(this.value)" title="Columnas al imprimir">
+          <option value="1">1 por fila</option>
           <option value="2">2 por fila</option>
           <option value="3">3 por fila</option>
           <option value="4" selected>4 por fila</option>
@@ -456,6 +458,49 @@
 
     btn.textContent = '⬇ ZIP';
     btn.disabled = false;
+  }
+
+  function downloadImage() {
+    if (!codes.length) return;
+
+    const cols  = parseInt(document.getElementById('print-cols').value) || 4;
+    const rows  = Math.ceil(codes.length / cols);
+    const pad   = 14;
+    const textH = 22;
+    const cellW = currentSize + pad * 2;
+    const cellH = currentSize + pad * 2 + textH;
+
+    const canvas = document.createElement('canvas');
+    canvas.width  = cols * cellW;
+    canvas.height = rows * cellH;
+    const ctx = canvas.getContext('2d');
+
+    // Fondo blanco
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < codes.length; i++) {
+      const src = getCanvas(i);
+      if (!src) continue;
+
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = col * cellW + pad;
+      const y = row * cellH + pad;
+
+      ctx.drawImage(src, x, y, currentSize, currentSize);
+
+      // ID debajo del código
+      ctx.fillStyle = '#1A1A1A';
+      ctx.font = '500 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(codes[i], x + currentSize / 2, y + currentSize + 15);
+    }
+
+    const a = document.createElement('a');
+    a.download = 'codigos_' + (document.getElementById('prefix').value || 'lote') + '.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
   }
 
   function setPrintCols(n) {
